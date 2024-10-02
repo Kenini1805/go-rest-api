@@ -2,32 +2,33 @@ package server
 
 import (
 	"github.com/Kenini1805/go-rest-api/config"
+	"github.com/Kenini1805/go-rest-api/docs"
 	"github.com/Kenini1805/go-rest-api/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"gorm.io/gorm"
 )
 
 type Server struct {
 	cfg    *config.Config
-	db     *sqlx.DB
+	db     *gorm.DB
 	logger logger.Logger
 	router *gin.Engine
 }
 
-func NewServer(cfg *config.Config, db *sqlx.DB, logger logger.Logger) *Server {
+func NewServer(cfg *config.Config, db *gorm.DB, logger logger.Logger) *Server {
 	// Create a new Gin router.
 	router := gin.New()
+
+	docs.SwaggerInfo.Title = "Go example REST API"
+	router.GET("/swagger/*any", gin.WrapH(httpSwagger.WrapHandler))
 
 	// Use Gin's default logger and recovery middleware.
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-
-	// Add your routes here.
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "OK",
-		})
-	})
+	// Map the routes using the handlers
+	handlers := NewHandlers(db)
+	handlers.MapRoutes(router)
 
 	// Initialize and return the server.
 	return &Server{

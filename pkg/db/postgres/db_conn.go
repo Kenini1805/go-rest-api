@@ -5,7 +5,9 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/stdlib" // pgx driver.
-	"github.com/jmoiron/sqlx"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/Kenini1805/go-rest-api/config"
 )
@@ -18,7 +20,7 @@ const (
 )
 
 // Return new Postgresql db instance.
-func NewPsqlDB(c *config.Config) (*sqlx.DB, error) {
+func NewPsqlDB(c *config.Config) (*gorm.DB, error) {
 	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
 		c.Postgres.PostgresqlHost,
 		c.Postgres.PostgresqlPort,
@@ -27,18 +29,35 @@ func NewPsqlDB(c *config.Config) (*sqlx.DB, error) {
 		c.Postgres.PostgresqlPassword,
 	)
 
-	db, err := sqlx.Connect(c.Postgres.PgDriver, dataSourceName)
+	// Open a new connection to the database using GORM
+	db, err := gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetConnMaxLifetime(connMaxLifetime * time.Second)
-	db.SetMaxIdleConns(maxIdleConns)
-	db.SetConnMaxIdleTime(connMaxIdleTime * time.Second)
-	if err = db.Ping(); err != nil {
+	// Configure the connection pool
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+	sqlDB.SetConnMaxLifetime(connMaxLifetime * time.Second)
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+	sqlDB.SetConnMaxIdleTime(connMaxIdleTime * time.Second)
+
+	// Ping the database to verify connection
+	if err = sqlDB.Ping(); err != nil {
 		return nil, err
 	}
 
 	return db, nil
+}
+
+func CloseDatabaseConnection(db *gorm.DB) {
+	dbSQL, err := db.DB()
+	if err != nil {
+		panic("Gagal untuk keluar koneksi database")
+	}
+	dbSQL.Close()
 }
