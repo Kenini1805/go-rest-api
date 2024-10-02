@@ -1,0 +1,82 @@
+definitions:
+  httpErrors.RestError:
+    properties:
+      error:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      about:
+        maxLength: 1024
+        type: string
+      address:
+        maxLength: 250
+        type: string
+      avatar:
+        maxLength: 512
+        type: string
+      birthday:
+        maxLength: 10
+        type: string
+      city:
+        maxLength: 24
+        type: string
+      country:
+        maxLength: 24
+        type: string
+      created_at:
+        type: string
+      email:
+        maxLength: 60
+        type: string
+      gender:
+        maxLength: 10
+        type: string
+      login_date:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone_number:
+        maxLength: 20
+        type: string
+      postcode:
+        type: integer
+      role:
+        maxLength: 10
+        type: string
+      updated_at:
+        type: string
+      user_name:
+        maxLength: 30
+        type: string
+    required:
+    - email
+    - password
+    - user_name
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Register user
+      tags:
+      - Auth
+swagger: "2.0"

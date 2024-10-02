@@ -2,7 +2,7 @@
 
 #### 👨‍💻 Full list what has been used:
 * [gin](https://github.com/gin-gonic/gin) - Web framework
-* [sqlx](https://github.com/jmoiron/sqlx) - Extensions to database/sql.
+* [gorm](gorm.io/gorm) - Extensions to database/sql.
 * [pgx](https://github.com/jackc/pgx) - PostgreSQL driver and toolkit for Go
 * [viper](https://github.com/spf13/viper) - Go configuration with fangs
 * [go-redis](https://github.com/go-redis/redis) - Type-safe Redis client for Golang

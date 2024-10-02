@@ -39,9 +39,9 @@ func main() {
 	if err != nil {
 		appLogger.Fatalf("Postgresql init: %s", err)
 	} else {
-		appLogger.Infof("Postgres connected, Status: %#v", psqlDB.Stats())
+		appLogger.Infof("Postgres connected, Status: %#v", psqlDB)
 	}
-	defer psqlDB.Close()
+	defer postgres.CloseDatabaseConnection(psqlDB)
 
 	s := server.NewServer(cfg, psqlDB, appLogger)
 	if err = s.Run(); err != nil {
