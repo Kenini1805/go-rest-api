@@ -8,6 +8,7 @@ import (
 type UserRepository interface {
 	IsDuplicateEmail(email string) (bool, error)
 	InsertUser(user models.User) (models.User, error)
+	VerifyCredential(credentials models.LoginRequest) (models.User, error)
 }
 
 type userConnection struct {
@@ -33,6 +34,17 @@ func (db *userConnection) IsDuplicateEmail(email string) (bool, error) {
 
 func (db *userConnection) InsertUser(user models.User) (models.User, error) {
 	err := db.connection.Create(&user).Error
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (db *userConnection) VerifyCredential(credentials models.LoginRequest) (models.User, error) {
+	var user models.User
+	err := db.connection.Where("email = ?", credentials.Email).First(&user).Error
+
 	if err != nil {
 		return models.User{}, err
 	}

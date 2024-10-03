@@ -2,9 +2,12 @@ package models
 
 import (
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 type User struct {
+	ID          uuid.UUID  `json:"id" db:"id" redis:"id" validate:"omitempty"`
 	UserName    string     `json:"user_name" db:"user_name" redis:"user_name" validate:"required,lte=30"`
 	Email       string     `json:"email,omitempty" db:"email" redis:"email" validate:"required,lte=60,email"`
 	Password    string     `json:"password,omitempty" db:"password" redis:"password" validate:"omitempty,required,gte=6"`
@@ -29,4 +32,9 @@ type RegisterUserRequest struct {
 	Password string  `json:"password" binding:"required"`
 	Role     *string `json:"role" binding:"required"`
 	Gender   *string `json:"gender" binding:"required"`
+}
+
+type LoginRequest struct {
+	Email    string `json:"email" form:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }

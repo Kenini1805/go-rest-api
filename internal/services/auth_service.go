@@ -1,18 +1,22 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/Kenini1805/go-rest-api/internal/models"
 	"github.com/Kenini1805/go-rest-api/internal/repositories"
+	"github.com/gofrs/uuid"
 	"github.com/mashingan/smapping"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AuthService interface {
 	IsDuplicateEmail(email string) (bool, error)
 	CreateUser(userRegister models.RegisterUserRequest) (models.User, error)
+	VerifyCredential(credentials models.LoginRequest) (models.User, error)
 }
 
 type authService struct {
@@ -36,6 +40,7 @@ func (service *authService) IsDuplicateEmail(email string) (bool, error) {
 
 func (service *authService) CreateUser(userRegister models.RegisterUserRequest) (models.User, error) {
 	user := models.User{}
+	user.ID = uuid.Must(uuid.NewV4())
 	err := smapping.FillStruct(&user, smapping.MapFields(&userRegister))
 	if err != nil {
 		return models.User{}, fmt.Errorf("fail to register user: %w", err)
@@ -49,6 +54,24 @@ func (service *authService) CreateUser(userRegister models.RegisterUserRequest) 
 	return res, nil
 }
 
+func (service *authService) VerifyCredential(credentials models.LoginRequest) (models.User, error) {
+	password := credentials.Password
+	res, err := service.userRepository.VerifyCredential(credentials)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return models.User{}, nil
+		}
+		return models.User{}, fmt.Errorf("fail to verify credential user: %w", err)
+	}
+	comparedPassword := comparePassword(res.Password, []byte(password))
+
+	if !comparedPassword {
+		return models.User{}, nil
+	}
+
+	return res, nil
+}
+
 func hashAndSalt(pwd []byte) string {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
@@ -57,4 +80,14 @@ func hashAndSalt(pwd []byte) string {
 	}
 
 	return string(hash)
+}
+
+func comparePassword(hashedPwd string, plainPassword []byte) bool {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPassword)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	return true
 }

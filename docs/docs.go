@@ -15,6 +15,35 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Login with JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/http_errors.RestError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Register user",
@@ -38,7 +67,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/http_errors.RestError"
                         }
                     }
                 }
@@ -46,7 +75,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "httpErrors.RestError": {
+        "http_errors.RestError": {
             "type": "object",
             "properties": {
                 "error": {
@@ -99,6 +128,9 @@ const docTemplate = `{
                 "gender": {
                     "type": "string",
                     "maxLength": 10
+                },
+                "id": {
+                    "type": "string"
                 },
                 "login_date": {
                     "type": "string"

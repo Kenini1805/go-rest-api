@@ -17,3 +17,13 @@ func NewUserResponse(user models.User) UserResponse {
 		Role:     *user.Role,
 	}
 }
+
+type LoginResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
+func NewLoginResponse(token string) LoginResponse {
+	return LoginResponse{
+		AccessToken: token,
+	}
+}

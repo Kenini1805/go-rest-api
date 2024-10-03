@@ -36,7 +36,7 @@ func NewHandlers(db *gorm.DB) *Handlers {
 func (h *Handlers) MapRoutes(router *gin.Engine) {
 	authRoutes := router.Group("api/v1/auth")
 	{
-		// authRoutes.POST("/login", h.authController.Login)
+		authRoutes.POST("/login", h.authController.Login)
 		authRoutes.POST("/register", h.authController.Register)
 	}
 }
