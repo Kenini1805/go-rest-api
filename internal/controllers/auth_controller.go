@@ -8,12 +8,14 @@ import (
 	"github.com/Kenini1805/go-rest-api/internal/resources"
 	"github.com/Kenini1805/go-rest-api/internal/services"
 	"github.com/Kenini1805/go-rest-api/pkg/converter"
+	httperrors "github.com/Kenini1805/go-rest-api/pkg/http_errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type AuthController interface {
 	Register(ctx *gin.Context)
+	Login(ctx *gin.Context)
 }
 
 type authController struct {
@@ -39,32 +41,65 @@ func NewAuthController(authService services.AuthService, jwtService services.JWT
 // @Router /auth/register [post]
 func (c *authController) Register(ctx *gin.Context) {
 	var registerRequest models.RegisterUserRequest
-	errRequest := ctx.ShouldBind(&registerRequest)
-	if errRequest != nil {
-		response := converter.BuildErrorResponse("Failed to process the request", errRequest.Error(), converter.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+	if err := BindRequest(ctx, &registerRequest); err != nil {
 		return
 	}
 
 	userExists, err := c.authService.IsDuplicateEmail(registerRequest.Email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		response := converter.BuildErrorResponse("Failed to process the request", err.Error(), converter.EmptyObj{})
+		response := converter.BuildErrorResponse(httperrors.ErrBadRequestMessage, err.Error(), converter.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, response)
 	}
 
 	if userExists {
-		response := converter.BuildErrorResponse("Failed to process the request", "Duplicate email", converter.EmptyObj{})
+		response := converter.BuildErrorResponse(httperrors.ErrBadRequestMessage, "Duplicate email", converter.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, response)
 
 		return
 	}
 	user, err := c.authService.CreateUser(registerRequest)
 	if err != nil {
-		response := converter.BuildErrorResponse("Failed to process the request", err.Error(), converter.EmptyObj{})
+		response := converter.BuildErrorResponse(httperrors.ErrBadRequestMessage, err.Error(), converter.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, response)
 
 		return
 	}
 	// TO DO Send Email
 	ctx.JSON(http.StatusOK, resources.NewUserResponse(user))
+}
+
+// Login godoc
+// @Summary Login
+// @Description Login with JWT
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Success 200 string access_token
+// @Failure 500 {object} httperrors.RestError
+// @Router /auth/login [post]
+func (c *authController) Login(ctx *gin.Context) {
+	var loginRequest models.LoginRequest
+	if err := BindRequest(ctx, &loginRequest); err != nil {
+		return
+	}
+
+	authUser, err := c.authService.VerifyCredential(loginRequest)
+	if err != nil {
+		response := converter.BuildErrorResponse(httperrors.ErrBadRequestMessage, err.Error(), converter.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, response)
+
+		return
+	}
+
+	if authUser.Email != "" {
+		generateToken := c.jwtService.GenerateToken(authUser.ID.String())
+		ctx.JSON(http.StatusOK, resources.NewLoginResponse(generateToken))
+
+		return
+	}
+	response := converter.BuildErrorResponse(
+		httperrors.ErrBadRequestMessage,
+		httperrors.ErrUnauthorized.Error(), converter.EmptyObj{},
+	)
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 }

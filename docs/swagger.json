@@ -4,6 +4,35 @@
         "contact": {}
     },
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Login with JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/http_errors.RestError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Register user",
@@ -27,7 +56,7 @@
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/http_errors.RestError"
                         }
                     }
                 }
@@ -35,7 +64,7 @@
         }
     },
     "definitions": {
-        "httpErrors.RestError": {
+        "http_errors.RestError": {
             "type": "object",
             "properties": {
                 "error": {
@@ -88,6 +117,9 @@
                 "gender": {
                     "type": "string",
                     "maxLength": 10
+                },
+                "id": {
+                    "type": "string"
                 },
                 "login_date": {
                     "type": "string"

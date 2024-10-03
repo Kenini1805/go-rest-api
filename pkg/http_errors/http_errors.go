@@ -10,11 +10,15 @@ import (
 	"strings"
 )
 
+const (
+	ErrBadRequestMessage = "Failed to process the request"
+)
+
 var (
 	ErrBadRequest            = errors.New("bad request")
 	ErrWrongCredentials      = errors.New("wrong Credentials")
 	ErrNotFound              = errors.New("not Found")
-	ErrUnauthorized          = errors.New("errUnauthorized")
+	ErrUnauthorized          = errors.New("Unauthorized")
 	ErrForbidden             = errors.New("errForbidden")
 	ErrPermissionDenied      = errors.New("permission Denied")
 	ErrExpiredCSRFError      = errors.New("expired CSRF token")
